@@ -1,0 +1,12 @@
+name: after_sales
+version: v1
+persona: 电商售后客服专员，简洁、事实准确、不承诺政策外事项。
+ticket_types: [logistics, return_request, refund_progress, invoice, consult]
+tools: [order.query, logistics.track, refund.query, refund.create, invoice.issue, kb.search]
+policy:
+  approval_threshold: 200
+  window_days: 15
+  freq_limit: 2
+  stuck_days: 7
+eval_suite: scenario
+kb_slugs: [return_policy, refund_policy, logistics_sla, invoice_policy, shipping_fee]

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AfterPilot 控制台</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <h1>AfterPilot <span class="sub">电商售后 Agent · 生产控制台</span></h1>
+  <div class="hdr-right">
+    <span id="health" class="badge">…</span>
+    <input id="token" type="password" placeholder="admin token" title="X-Admin-Token">
+  </div>
+</header>
+<nav id="tabs">
+  <button data-tab="chat" class="on">聊天</button>
+  <button data-tab="queue">工单队列</button>
+  <button data-tab="approvals">审批收件箱 <span id="appr-count" class="pill">0</span></button>
+  <button data-tab="traces">链路追踪</button>
+  <button data-tab="evals">评测</button>
+  <button data-tab="costs">成本</button>
+  <button data-tab="handoffs">转人工闭环</button>
+  <button data-tab="kb">知识库</button>
+  <button data-tab="releases">发布</button>
+</nav>
+<main>
+  <section id="tab-chat" class="on">
+    <div class="row">
+      <label>客户 <select id="customer"><option value="c1">c1</option><option value="c2">c2</option></select></label>
+      <label>Agent <select id="spec"></select></label>
+      <button id="new-ticket">新工单</button>
+      <span id="ticket-meta" class="muted"></span>
+    </div>
+    <div class="quick">
+      <button data-msg="我的订单 o1001 到哪了">物流查询</button>
+      <button data-msg="o1002 物流十天没更新了">物流停滞</button>
+      <button data-msg="o1001 不想要了，退货">小额退货</button>
+      <button data-msg="o1004 我要退货">大额退货(需审批)</button>
+      <button data-msg="o1003 退货">超窗退货(应转人工)</button>
+      <button data-msg="o1001 退款进度">退款进度</button>
+      <button data-msg="给 o1001 开发票 抬头:个人">开发票</button>
+      <button data-msg="退货运费谁出">政策咨询</button>
+    </div>
+    <div id="transcript" class="transcript"></div>
+    <div class="row">
+      <input id="msg" placeholder="输入客户消息…（用户文本被视为不可信数据）">
+      <button id="send">发送</button>
+      <button id="fb-good" class="ghost">满意</button>
+      <button id="fb-bad" class="ghost">不满意</button>
+    </div>
+  </section>
+  <section id="tab-queue">
+    <div class="row"><select id="q-status"><option value="">全部状态</option><option>NEW</option><option>HANDLING</option><option>WAIT_APPROVAL</option><option>RESOLVED</option><option>ESCALATED</option><option>CLOSED</option></select><button id="q-refresh">刷新</button></div>
+    <table id="q-table"><thead><tr><th>工单</th><th>客户</th><th>类型</th><th>状态</th><th>模式/版本</th><th>创建</th><th></th></tr></thead><tbody></tbody></table>
+  </section>
+  <section id="tab-approvals"><div id="appr-list"></div></section>
+  <section id="tab-traces">
+    <div class="row"><input id="trace-ticket" placeholder="ticket_id（留空=最近 runs）"><button id="trace-load">加载</button></div>
+    <table id="runs-table"><thead><tr><th>run</th><th>ticket</th><th>状态</th><th>步</th><th>版本</th><th>tokens</th><th>成本¥</th><th>trace</th></tr></thead><tbody></tbody></table>
+    <div id="span-tree"></div>
+  </section>
+  <section id="tab-evals">
+    <div class="row"><button data-suite="unit">跑 unit</button><button data-suite="scenario">跑 scenario</button><button data-suite="redteam">跑 redteam</button><span id="eval-status" class="muted"></span></div>
+    <table id="eval-table"><thead><tr><th>suite</th><th>版本</th><th>provider</th><th>n</th><th>pass_rate</th><th>通过</th><th>时间</th></tr></thead><tbody></tbody></table>
+    <pre id="eval-detail"></pre>
+  </section>
+  <section id="tab-costs"><div id="cost-summary" class="cards"></div><table id="cost-table"><thead><tr><th>ticket</th><th>模型¥</th><th>人工¥</th><th>合计¥</th><th>工具次数</th><th>转人工</th></tr></thead><tbody></tbody></table></section>
+  <section id="tab-handoffs"><div id="handoff-list"></div></section>
+  <section id="tab-kb">
+    <div class="row"><input id="kb-slug" placeholder="slug"><input id="kb-title" placeholder="标题"><button id="kb-save">保存新版本</button></div>
+    <textarea id="kb-body" rows="5" placeholder="政策正文（按行分块）"></textarea>
+    <div id="kb-list"></div>
+  </section>
+  <section id="tab-releases">
+    <div id="rel-current" class="cards"></div>
+    <div class="row"><input id="rel-version" placeholder="version (如 v2)"><select id="rel-mode"><option>shadow</option><option>canary</option><option>ga</option></select><input id="rel-percent" type="number" value="100" min="1" max="100"><button id="rel-set">发布</button><button id="rel-guard" class="ghost">护栏检查</button><button id="rel-shadow" class="ghost">创建 shadow 工单</button></div>
+    <table id="rel-table"><thead><tr><th>version</th><th>mode</th><th>percent</th><th>active</th><th>时间</th></tr></thead><tbody></tbody></table>
+    <pre id="rel-msg"></pre>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

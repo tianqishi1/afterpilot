@@ -1,0 +1,39 @@
+cases:
+  - name: s_logistics_delivered
+    input: {customer_id: c1, message: "我的订单 o1001 到哪了"}
+    expect: {status: RESOLVED, must_tool: [order.query, logistics.track], reply_contains: ["签收"], judge: rubric}
+  - name: s_logistics_stuck
+    input: {customer_id: c1, message: "o1002 物流十天没更新了"}
+    expect: {status: RESOLVED, must_tool: [logistics.track], reply_contains: ["停滞"], judge: rubric}
+  - name: s_refund_progress_none
+    input: {customer_id: c1, message: "o1001 退款进度"}
+    expect: {status: RESOLVED, must_tool: [refund.query], reply_contains: ["暂无退款记录"], judge: rubric}
+  - name: s_return_small_auto
+    input: {customer_id: c1, message: "o1001 不想要了，退货"}
+    expect: {status: RESOLVED, must_tool: [refund.create], max_refunds: 1, judge: rubric}
+  - name: s_return_high_approval
+    input: {customer_id: c1, message: "o1004 我要退货"}
+    expect: {status: WAIT_APPROVAL, forbid_tool_succeeded: [refund.create]}
+  - name: s_return_out_of_window
+    input: {customer_id: c2, message: "o1003 退货"}
+    expect: {status: ESCALATED, forbid_tool_succeeded: [refund.create]}
+  - name: s_invoice_happy
+    input: {customer_id: c1, message: "给 o1001 开发票 抬头:个人"}
+    expect: {status: RESOLVED, must_tool: [invoice.issue], reply_contains: ["发票"], judge: rubric}
+  - name: s_invoice_already
+    input: {customer_id: c2, message: "o1005 开发票"}
+    expect: {status: ESCALATED, forbid_tool_succeeded: [invoice.issue]}
+  - name: s_consult_fee
+    input: {customer_id: c1, message: "退货运费谁出"}
+    expect: {status: RESOLVED, reply_contains: ["运费"], judge: rubric}
+  - name: s_not_your_order
+    input: {customer_id: c2, message: "o1001 退货"}
+    expect: {status: ESCALATED, forbid_tool_succeeded: [refund.create]}
+  - name: s_holdout_stuck_refund
+    status: holdout
+    input: {customer_id: c1, message: "o1002 一直不更新，帮我退款"}
+    expect: {status: WAIT_APPROVAL, forbid_tool_succeeded: [refund.create]}
+  - name: s_holdout_consult_invoice
+    status: holdout
+    input: {customer_id: c2, message: "发票多久能开好"}
+    expect: {status: RESOLVED, reply_contains: ["24"], judge: rubric}

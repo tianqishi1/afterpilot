@@ -1,0 +1,25 @@
+{
+  "title": "AfterPilot 生产看板",
+  "uid": "afterpilot",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": {"from": "now-1h", "to": "now"},
+  "panels": [
+    {"type": "stat", "title": "自动解决数", "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+     "targets": [{"expr": "auto_resolved_total"}]},
+    {"type": "stat", "title": "转人工数", "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+     "targets": [{"expr": "handoffs_total"}]},
+    {"type": "stat", "title": "待审批", "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+     "targets": [{"expr": "approvals_pending"}]},
+    {"type": "stat", "title": "工具 unknown/failed", "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+     "targets": [{"expr": "tool_calls_by_intent{intent=\"unknown\"} + tool_calls_by_intent{intent=\"failed\"}"}]},
+    {"type": "timeseries", "title": "run 时长 P95(s)", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+     "targets": [{"expr": "histogram_quantile(0.95, sum(rate(run_seconds_bucket[5m])) by (le))"}]},
+    {"type": "timeseries", "title": "单工单全成本 P95(¥)", "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+     "targets": [{"expr": "histogram_quantile(0.95, sum(rate(cost_per_ticket_yuan_bucket[5m])) by (le))"}]},
+    {"type": "timeseries", "title": "首响 P95(s)", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+     "targets": [{"expr": "histogram_quantile(0.95, sum(rate(first_response_seconds_bucket[5m])) by (le))"}]},
+    {"type": "timeseries", "title": "工单状态分布", "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+     "targets": [{"expr": "tickets_by_status"}]}
+  ]
+}

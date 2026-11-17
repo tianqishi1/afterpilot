@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: afterpilot
+    folder: AfterPilot
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

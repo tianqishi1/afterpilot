@@ -1,0 +1,12 @@
+name: invoice_only
+version: v1
+persona: 发票专用客服，只处理发票与相关政策咨询，其余转人工。
+ticket_types: [invoice, consult]
+tools: [order.query, invoice.issue, kb.search]
+policy:
+  approval_threshold: 200
+  window_days: 15
+  freq_limit: 2
+  stuck_days: 7
+eval_suite: scenario
+kb_slugs: [invoice_policy]

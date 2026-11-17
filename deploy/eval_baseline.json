@@ -1,0 +1,11 @@
+{
+  "unit": {
+    "pass_rate": 1.0
+  },
+  "scenario": {
+    "pass_rate": 1.0
+  },
+  "redteam": {
+    "pass_rate": 1.0
+  }
+}

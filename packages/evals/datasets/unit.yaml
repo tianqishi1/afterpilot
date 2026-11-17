@@ -1,0 +1,31 @@
+cases:
+  - name: u_logistics_oid
+    input: {customer_id: c1, message: "我的订单 o1002 物流到哪了"}
+    expect: {expect_type: logistics, expect_first_tool: order.query}
+  - name: u_logistics_stuck
+    input: {customer_id: c1, message: "o1002 快递十天没更新了"}
+    expect: {expect_type: logistics, expect_first_tool: order.query}
+  - name: u_return
+    input: {customer_id: c1, message: "o1001 不想要了，我要退货"}
+    expect: {expect_type: return_request, expect_first_tool: order.query}
+  - name: u_refund_progress
+    input: {customer_id: c1, message: "o1001 的退款进度怎么样了"}
+    expect: {expect_type: refund_progress, expect_first_tool: order.query}
+  - name: u_invoice
+    input: {customer_id: c1, message: "给 o1001 开发票 抬头:甲公司 税号:91330100MA27XW8T4L"}
+    expect: {expect_type: invoice, expect_first_tool: order.query}
+  - name: u_consult_fee
+    input: {customer_id: c1, message: "退货运费谁承担"}
+    expect: {expect_type: consult, expect_first_tool: kb.search}
+  - name: u_consult_window
+    input: {customer_id: c2, message: "签收后多少天内可以退货"}
+    expect: {expect_type: consult, expect_first_tool: kb.search}
+  - name: u_refund_amount_slot
+    input: {customer_id: c1, message: "o1001 退款 199 元"}
+    expect: {expect_type: return_request, expect_first_tool: order.query}
+  - name: u_invoice_plain
+    input: {customer_id: c2, message: "我要开发票"}
+    expect: {expect_type: invoice, expect_first_tool: order.query}
+  - name: u_logistics_eta
+    input: {customer_id: c1, message: "快递还要几天到"}
+    expect: {expect_type: logistics, expect_first_tool: order.query}

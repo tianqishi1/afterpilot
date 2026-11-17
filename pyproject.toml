@@ -1,0 +1,13 @@
+[project]
+name = "afterpilot"
+version = "0.1.0"
+description = "Production-grade e-commerce after-sales agent system"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 110

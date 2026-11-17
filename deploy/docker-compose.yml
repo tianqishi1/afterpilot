@@ -1,0 +1,58 @@
+name: afterpilot
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: afterpilot
+      POSTGRES_DB: afterpilot
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d afterpilot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  mock-shop:
+    build: {context: .., dockerfile: deploy/Dockerfile}
+    command: uvicorn services.mock_shop.main:app --host 0.0.0.0 --port 8001
+    ports: ["8001:8001"]
+  api:
+    build: {context: .., dockerfile: deploy/Dockerfile}
+    command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+    environment: &appenv
+      DATABASE_URL: postgresql+psycopg://postgres:afterpilot@postgres:5432/afterpilot
+      MOCK_SHOP_URL: http://mock-shop:8001
+      MODEL_PROVIDER: ${MODEL_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token}
+      WORKER_THREADS: "4"
+    depends_on:
+      postgres: {condition: service_healthy}
+      mock-shop: {condition: service_started}
+    restart: unless-stopped
+  worker:
+    build: {context: .., dockerfile: deploy/Dockerfile}
+    command: python -m apps.worker.main --workers 4
+    environment: *appenv
+    depends_on:
+      postgres: {condition: service_healthy}
+      mock-shop: {condition: service_started}
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+    depends_on: [api]
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+volumes:
+  pgdata:
