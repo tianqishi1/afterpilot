@@ -1,10 +1,11 @@
 name: afterpilot
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    image: docker.m.daocloud.io/library/postgres:16  # swap to pgvector/pgvector:pg16 when vector retrieval lands (ADR-003)
     environment:
       POSTGRES_PASSWORD: afterpilot
       POSTGRES_DB: afterpilot
+    ports: ["5433:5432"]  # host 5432 may be occupied; container-internal stays 5432
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d afterpilot"]
@@ -41,12 +42,12 @@ services:
       mock-shop: {condition: service_started}
     restart: unless-stopped
   prometheus:
-    image: prom/prometheus:latest
+    image: docker.m.daocloud.io/prom/prometheus:latest
     volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
     ports: ["9090:9090"]
     depends_on: [api]
   grafana:
-    image: grafana/grafana:latest
+    image: docker.m.daocloud.io/grafana/grafana:latest
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:

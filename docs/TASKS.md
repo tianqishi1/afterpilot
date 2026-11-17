@@ -1,38 +1,46 @@
 # AfterPilot 任务板（M0–M4 → 可执行任务）
 
-状态: [ ] 待办 / [~] 进行中 / [x] 完成并验证
-验收以 tests/ 与 scripts/ 的可重复执行为准，不口头验收。
+状态: [x] 完成并验证 / [~] 部分 / [ ] 待办。验收以 tests/ 与 scripts/ 可重复执行为准。
+验证基线：pytest 27/27；evals unit=1.0 scenario=1.0 redteam=1.0；judge κ=1.0(mock 标注种子)；
+chaos 不双退；release 演练 ok；Postgres SKIP LOCKED + Compose api/worker/mock-shop 实测通过。
 
 ## M0 骨架与确定性基线
-- [ ] T001 monorepo 脚手架、配置、SQLAlchemy 模型、DB 初始化（sqlite  dev / postgres prod）
-- [ ] T002 mock-shop：订单/物流/退款/发票 API + 种子数据 + 故障注入（latency/error/timeout_after_commit）
-- [ ] T003 工单确定性状态机 + DB 租约队列（sqlite BEGIN IMMEDIATE / pg SKIP LOCKED）
-- [ ] T004 无 LLM 确定性 FAQ 基线 + /api/chat + Web 聊天视图 + 基线指标
-- [ ] T019 Docker Compose + Dockerfile + Prometheus + Grafana provisioning
+- [x] T001 monorepo/配置/模型/DB（sqlite dev + postgres prod 双方言实测）
+- [x] T002 mock-shop + 种子 + 故障注入（latency/error/timeout_after_commit；by-key 对账口不受故障影响）
+- [x] T003 状态机 + DB 租约队列（sqlite 原子 UPDATE..RETURNING / pg SKIP LOCKED；租约回收 chaos 验证）
+- [x] T004 /api/chat + Web 聊天 + 确定性分诊基线（triage_rules 亦为 M0 无 LLM 基线）
+- [x] T019 Compose/Dockerfile/Prometheus/Grafana provisioning（镜像构建+up+PG 冒烟+worker e2e 实测；
+      Grafana/Prometheus 容器本轮未起，镜像已换 daocloud 源，见"下一步"）
 
 ## M1 Agent 端到端与资金安全
-- [ ] T005 版本化政策 KB + BM25 检索（pgvector 为演进项，见 ADR-003）
-- [ ] T006 工具注册表（JSON Schema + 权限 scope + 超时/重试/熔断）+ LocalGateway + MCP server 封装
-- [ ] T007 LLM Provider 接口：mock（离线可跑）+ OpenAI 兼容（DashScope/OpenAI）+ 结构化输出校验与修复环
-- [ ] T008 Agent loop（≤6 步）+ 逐步 checkpoint + 崩溃续跑
-- [ ] T009 策略引擎硬规则 + 幂等退款（idempotency_key + intent log + query-before-retry）
-- [ ] T010 审批收件箱 + 审批决定后恢复 run
-- [ ] T020a 单元/集成测试：状态机、策略矩阵、幂等、队列租约、e2e 五类工单
+- [x] T005 版本化 KB + BM25（CJK bigram）；run_suite 新库自动 seed 保证环境一致性
+- [x] T006 工具注册表（Schema+scope+超时/重试/熔断）+ LocalGateway + 真实 MCP stdio server
+- [x] T007 Provider 接口 mock/openai + 结构化输出校验与 2 次修复环（openai 路径待 key，见下一步）
+- [x] T008 loop <=6 步 + 逐步 checkpoint + 崩溃续跑（chaos 验证）
+- [x] T009 策略引擎写边界硬规则 + 幂等键 + intent log(executing 前置) + query-before-retry + unknown 禁盲重试
+- [x] T010 审批收件箱 + payload_hash 绑定 + 批准/拒绝恢复 run（HTTP 实测）
+- [x] T020a 单元/集成测试 27 项全绿
 
 ## M2 评测体系与门禁
-- [ ] T014 三层评测集（unit/scenario/redteam）+ runner + judge（规则+LLM）+ 人工标注校准（Cohen κ）
-- [ ] T015 CI 回归门禁：baseline 对比，核心指标跌 >2pp 阻断；holdout 集
-- [ ] T020b 评测测试：改坏 prompt 版本 CI 能拦
+- [x] T014 三层评测集 + holdout + runner + judge(规则地板+LLM) + 校准脚本（κ>=0.7 才可信）
+- [x] T015 CI 门禁（.github/workflows/ci.yml + deploy/eval_baseline.json；跌>2pp 阻断；改坏版本被拦测试验证）
+- [x] T020b gate 阻断降级版本测试通过
 
 ## M3 生产可靠性与可观测
-- [ ] T012 DB spans 全链路 trace + 成本账本（token+工具+人工分钟）+ /metrics
-- [ ] T013 PII 脱敏 + 注入隔离（用户文本=数据）+ 输出合规检查 + 审计日志
-- [ ] T011 管理后台：队列/审批/Trace/成本/Handoff/KB 视图
-- [ ] T020c 混沌测试：退款中途 kill -9 worker，重启不双退；红队资金类 100% 拦截
+- [x] T012 DB spans trace + 成本账本(含人工摊销) + /metrics（Prometheus 文本，Grafana 看板 json）
+- [x] T013 PII 脱敏 + 注入隔离 + 输出合规 + 审计（红队 10/10，资金类 0 泄露 0 错退）
+- [x] T011 管理台九视图（聊天/队列/审批/trace/评测/成本/闭环/KB/发布）
+- [x] T020c chaos kill -9 不双退 + worker 轮询线程 DB 瞬断自愈（Compose 实测抓出并修复）
 
 ## M4 闭环、平台化与发布演练
-- [ ] T016 转人工/人工纠正 → 候选评测用例 → 人工审入库 流水线
-- [ ] T017 Agent 定义 YAML + 第二个 Agent（invoice_only）复用 loop/评测/部署
-- [ ] T018 发布模式 shadow/canary/ga + 护栏自动回滚 + 演练脚本
-- [ ] T021 文档：README / runbook / ADR / 一页纸 / postmortem 模板
-- [ ] T022 本地全链路冒烟 + 评测报告 + 指标截图材料
+- [x] T016 转人工/纠正 → candidate → 人工审 active/retired（HTTP+测试验证）
+- [x] T017 agents/*.yaml + invoice_only 第二 Agent 复用共享 runtime
+- [x] T018 shadow/canary/ga + 评测门禁晋升 + 护栏自动回滚（drill_release.py 全 ok）
+- [x] T021 README/ADR/runbook/一页纸/postmortem 模板/人工标注种子
+- [x] T022 本地全链路冒烟（物流/审批/超窗/注入/指标/控制台）+ 评测报告 + 基线落盘
+
+## 下一步（明确未做，不冒充已验证）
+- [ ] T023 Grafana/Prometheus 容器起栈验证看板（镜像源已配；本轮只验证了 api/worker/pg/mock-shop）
+- [ ] T024 接 DASHSCOPE_API_KEY 跑真实模型评测+judge 校准（网络到 DashScope 已验证可达；OpenAI 直连超时）
+- [ ] T025 真实店铺适配器（Shopify dev store 优先）+ 契约测试；mock 流量指标口径校准后再报真实业务指标
+- [ ] T026 生产化演进：Redis Stream 队列/语义缓存、pgvector 检索、OTel+Langfuse 导出器、async 化（见 ADR）

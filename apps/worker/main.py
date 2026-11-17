@@ -43,7 +43,12 @@ def drain(loop: AgentLoop | None = None, max_jobs: int = 200) -> int:
 
 def poll(wid: str, loop: AgentLoop):
     while not STOP.is_set():
-        job = queue.claim(wid)
+        try:
+            job = queue.claim(wid)
+        except Exception as exc:  # noqa: BLE001 - transient DB outage must not kill the poll thread
+            print(f"[{wid}] claim error, backoff: {exc}", flush=True)
+            time.sleep(1.0)
+            continue
         if job is None:
             try:
                 check_guardrails(config.DEFAULT_SPEC)

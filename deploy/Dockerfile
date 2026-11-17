@@ -1,6 +1,8 @@
 FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} PIP_TRUSTED_HOST=mirrors.aliyun.com
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 ENV PYTHONPATH=/app PYTHONUNBUFFERED=1
