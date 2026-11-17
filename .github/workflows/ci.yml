@@ -10,5 +10,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: unit + integration + chaos tests
         run: python -m pytest -q
+      - name: start mock-shop for eval suites
+        run: |
+          python -m uvicorn services.mock_shop.main:app --host 127.0.0.1 --port 8001 &
+          sleep 3
+          curl -sf http://127.0.0.1:8001/health
       - name: eval regression gate (blocks metric drop > 2pp)
         run: python scripts/run_evals.py --suites unit scenario redteam --gate --baseline deploy/eval_baseline.json
