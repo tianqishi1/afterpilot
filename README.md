@@ -2,6 +2,9 @@
 
 [![ci](https://github.com/tianqishi1/afterpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/tianqishi1/afterpilot/actions/workflows/ci.yml)
 
+
+> **生态**：底座 [agent-base](https://github.com/tianqishi1/agent-base) · 评测 [eval-pipeline](https://github.com/tianqishi1/eval-pipeline) · 技能 [marketing-skills-cn](https://github.com/tianqishi1/marketing-skills-cn)
+
 生产级售后工单 Agent：确定性状态机做骨架、单 Agent + MCP 工具做决策；资金动作走
 "策略引擎硬规则 + 人工审批 + 幂等执行"；自带三层评测回归门禁、全链路 trace、按
 "每个有效解决"核算的成本账本、人工纠正→评测用例闭环、YAML 平台化与 shadow/canary/回滚发布。
